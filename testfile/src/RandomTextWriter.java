@@ -17,7 +17,7 @@
  */
 
 // Function: Generate random text file
-// Usage: bin/hadoop jar  share/hadoop/mapreduce2/hadoop-mapreduce-examples-xx.jar randomtextwriter -Dmapreduce.randomtextwriter.totalbytes=10995116277760 /home/test/mrinput 
+// Usage: hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-3.2.2.jar randomtextwriter -Dmapreduce.randomtextwriter.totalbytes=10485760 /user/galaxy/lcinput
 
 package galaxy.testfile;
 

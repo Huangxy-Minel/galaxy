@@ -1,11 +1,11 @@
 # function: compile .java and create jar
 
 # add path of java file and output path 
-TARGETPATH=/home/galaxy/code/java_code/galaxy/testfile/src
-DESPATH=/home/galaxy/code/java_code/
+TARGETPATH=/home/galaxy/galaxy/testfile/src
+DESPATH=/home/galaxy/galaxy
 
 # add lib path
-GALAXYPATH=/home/galaxy/code/java_code/
+GALAXYPATH=/home/galaxy/galaxy/
 APACHECOMMON=/home/galaxy/hadoop-3.2.2/share/hadoop/common/hadoop-common-3.2.2.jar
 APACHEMAPREDUCE=/home/galaxy/hadoop-3.2.2/share/hadoop/mapreduce/hadoop-mapreduce-client-core-3.2.2.jar
 HIPPATH=/home/galaxy/code/java_code/lib/hip/hip-2.0.0.jar
@@ -19,7 +19,7 @@ javac -encoding utf-8 -cp $APACHECOMMON\
 :$COMMONCLI\
 :$FSPATH\
 :$GALAXYPATH\
-:$LANGPATH $TARGETPATH/RandomTextWriter.java -d $DESPATH
+:$LANGPATH $TARGETPATH/Hello.java -d $DESPATH
 
 # create jar
 # jar cf wc2.jar WordCount*.class
