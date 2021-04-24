@@ -5,7 +5,7 @@ TARGETPATH=/home/galaxy/galaxy/yarnapp/hello/src
 DESPATH=/home/galaxy
 
 # add lib path
-GALAXYPATH=/home/galaxy/galaxy
+GALAXYPATH=/home/galaxy/
 APACHECOMMON=/home/galaxy/hadoop-3.2.2/share/hadoop/common/hadoop-common-3.2.2.jar
 APACHEMAPREDUCE=/home/galaxy/hadoop-3.2.2/share/hadoop/mapreduce/hadoop-mapreduce-client-core-3.2.2.jar
 HIPPATH=/home/galaxy/code/java_code/lib/hip/hip-2.0.0.jar
@@ -27,7 +27,7 @@ javac -encoding utf-8 -cp $APACHECOMMON\
 :$YARNCLI\
 :$YARNCOMMON\
 :$GALAXYPATH\
- $TARGETPATH/Client.java -d $DESPATH
+ $TARGETPATH/ApplicationMaster.java -d $DESPATH
 
 # create jar
 # jar cf wc2.jar WordCount2*.class
