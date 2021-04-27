@@ -16,6 +16,7 @@ import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
+import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.Priority;
@@ -54,22 +55,24 @@ public class ApplicationMaster {
             Priority priority = Records.newRecord(Priority.class);
             priority.setPriority(0);
             Resource capability = Records.newRecord(Resource.class);
-            capability.setMemory(128);
+            capability.setMemory(64);
             capability.setVirtualCores(1);
             // Make container requests to ResourceManager
             ContainerRequest containerAsk = new ContainerRequest(capability, null, null, priority);
-            System.out.println("adding container ask:" + containerAsk);
+            System.out.println("adding two container asks:" + containerAsk);
+            rmClient.addContainerRequest(containerAsk);
             rmClient.addContainerRequest(containerAsk);
 
             // ----------------Wait and launch containers----------------
-            boolean allocatedContainer = false;
-            while (!allocatedContainer) {
+            int allocatedContainer = 0;
+            while (allocatedContainer < 2) {
                 System.out.println("Waiting for containers......");
                 AllocateResponse response = rmClient.allocate(0);
                 for (Container container : response.getAllocatedContainers()) {
-                    System.out.println("Get a container!");
-                    allocatedContainer = true;
-                    ContainerLaunchContext ctx = creattContainerLaunchContext(conf);
+                    ContainerId containerID = container.getId();
+                    System.out.println("Get a container! ID: " + containerID.toString());
+                    allocatedContainer++;
+                    ContainerLaunchContext ctx = createContainerLaunchContext(conf);
                     System.out.println("Launching container " + container);
                     nmClient.startContainer(container, ctx);
                 }
@@ -96,7 +99,7 @@ public class ApplicationMaster {
             t.printStackTrace();
         }
     }
-    public static ContainerLaunchContext creattContainerLaunchContext(YarnConfiguration conf) throws Exception {
+    public static ContainerLaunchContext createContainerLaunchContext(YarnConfiguration conf) throws Exception {
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
         // Set launch commands
         final String cmd = "java -classpath Container.jar galaxy.testfile.Hello";
