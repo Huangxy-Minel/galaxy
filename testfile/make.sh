@@ -2,7 +2,7 @@
 
 # add path of java file and output path 
 TARGETPATH=/home/galaxy/galaxy/testfile/src
-DESPATH=/home/galaxy/galaxy
+DESPATH=/home/galaxy/
 
 # add lib path
 GALAXYPATH=/home/galaxy/galaxy/

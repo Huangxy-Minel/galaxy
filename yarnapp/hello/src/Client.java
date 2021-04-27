@@ -1,4 +1,4 @@
-// Function: print Hello World
+// Function: Create and Monitor ApplicationMaster
 // Author: MinelHuang
 // Date: 2021/04/22
 package galaxy.yarnapp.hello;
@@ -54,52 +54,7 @@ public class Client {
         fs.copyFromLocalFile(src, dest);
 
         // ----------------Config AM----------------
-        // ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest);
-        System.out.println("create and configure AM");
-        // Apply container for AM
-        YarnClientApplication app = yarnClient.createApplication();
-
-        // ----------------Config Submission Context----------------
-        ContainerLaunchContext container = Records.newRecord(ContainerLaunchContext.class);
-        // Add launch Cmd
-        String amLaunchCmd =
-            String.format(
-                "$JAVA_HOME/bin/java -Xmx256M %s 1>%s/stdout 2>%s/stderr",
-                ApplicationMaster.class.getName(),
-                ApplicationConstants.LOG_DIR_EXPANSION_VAR,
-                ApplicationConstants.LOG_DIR_EXPANSION_VAR);
-        container.setCommands(Lists.newArrayList(amLaunchCmd));
-        // Add local resource for AM
-        LocalResource appMasterJar = Records.newRecord(LocalResource.class);
-        FileStatus jarStat = FileSystem.get(conf).getFileStatus(dest);
-        System.out.println("test");
-        System.out.println(ConverterUtils.getYarnUrlFromPath(dest));
-        appMasterJar.setResource(ConverterUtils.getYarnUrlFromPath(dest));
-        appMasterJar.setSize(jarStat.getLen());
-        appMasterJar.setTimestamp(jarStat.getModificationTime());
-        appMasterJar.setType(LocalResourceType.FILE);
-        appMasterJar.setVisibility(LocalResourceVisibility.APPLICATION);
-        container.setLocalResources(
-            ImmutableMap.of("AppMaster.jar", appMasterJar));
-        // Set classpath for AM
-        Map<String, String> appMasterEnv = Maps.newHashMap();
-        for (String c : conf.getStrings(
-            YarnConfiguration.YARN_APPLICATION_CLASSPATH,
-            YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
-        Apps.addToEnvironment(appMasterEnv, Environment.CLASSPATH.name(), c.trim());
-        }
-
-        // ----------------Config resource requirements for AM----------------
-        Resource capability = Records.newRecord(Resource.class);
-        capability.setMemory(256);
-        capability.setVirtualCores(1);
-        // Set up ApplicationSubmissionContext
-        ApplicationSubmissionContext appContext =
-            app.getApplicationSubmissionContext();
-        appContext.setApplicationName("Hello-World"); // application name
-        appContext.setAMContainerSpec(container);
-        appContext.setResource(capability);
-        appContext.setQueue("default"); // queue
+        ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest);
 
         // ----------------Submit AM to RM----------------
         ApplicationId appId = appContext.getApplicationId();
@@ -142,8 +97,6 @@ public class Client {
         // Add local resource for AM
         LocalResource appMasterJar = Records.newRecord(LocalResource.class);
         FileStatus jarStat = FileSystem.get(conf).getFileStatus(jarURL);
-        System.out.println("test");
-        System.out.println(ConverterUtils.getYarnUrlFromPath(jarURL));
         appMasterJar.setResource(ConverterUtils.getYarnUrlFromPath(jarURL));
         appMasterJar.setSize(jarStat.getLen());
         appMasterJar.setTimestamp(jarStat.getModificationTime());
@@ -158,6 +111,10 @@ public class Client {
             YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
         Apps.addToEnvironment(appMasterEnv, Environment.CLASSPATH.name(), c.trim());
         }
+        Apps.addToEnvironment(appMasterEnv,
+            Environment.CLASSPATH.name(),
+            Environment.PWD.$() + File.separator + "*");
+        container.setEnvironment(appMasterEnv);
 
         // ----------------Config resource requirements for AM----------------
         Resource capability = Records.newRecord(Resource.class);
