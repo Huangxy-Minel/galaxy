@@ -7,12 +7,14 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ClassUtil;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
+import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
@@ -28,8 +30,12 @@ import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
 import org.apache.hadoop.yarn.client.api.NMClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
+
+import java.io.File;
+import java.util.Map;
 
 
 public class ApplicationMaster {
@@ -61,11 +67,10 @@ public class ApplicationMaster {
             ContainerRequest containerAsk = new ContainerRequest(capability, null, null, priority);
             System.out.println("adding two container asks:" + containerAsk);
             rmClient.addContainerRequest(containerAsk);
-            rmClient.addContainerRequest(containerAsk);
 
             // ----------------Wait and launch containers----------------
             int allocatedContainer = 0;
-            while (allocatedContainer < 2) {
+            while (allocatedContainer < 1) {
                 System.out.println("Waiting for containers......");
                 AllocateResponse response = rmClient.allocate(0);
                 for (Container container : response.getAllocatedContainers()) {
@@ -102,7 +107,7 @@ public class ApplicationMaster {
     public static ContainerLaunchContext createContainerLaunchContext(YarnConfiguration conf) throws Exception {
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
         // Set launch commands
-        final String cmd = "java -classpath Container.jar galaxy.testfile.Hello";
+        final String cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.testfile.Hello";
         String ctnLaunchCmd =
             String.format(
                 "%s 1>%s/stdout 2>%s/stderr",
@@ -122,6 +127,18 @@ public class ApplicationMaster {
         containerJar.setVisibility(LocalResourceVisibility.APPLICATION);
         ctx.setLocalResources(
             ImmutableMap.of("Container.jar", containerJar));
+
+        // Set classpath for Client
+        Map<String, String> ctxEnv = Maps.newHashMap();
+        for (String c : conf.getStrings(
+            YarnConfiguration.YARN_APPLICATION_CLASSPATH,
+            YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
+        Apps.addToEnvironment(ctxEnv, Environment.CLASSPATH.name(), c.trim());
+        }
+        Apps.addToEnvironment(ctxEnv,
+            Environment.CLASSPATH.name(),
+            Environment.PWD.$() + File.separator + "*");
+        ctx.setEnvironment(ctxEnv);
 
         return ctx;
     }
