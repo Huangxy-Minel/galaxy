@@ -1,7 +1,7 @@
 # function: compile .java and create jar
 
 # add path of java file and output path 
-TARGETPATH=/home/galaxy/galaxy/dataprocess/mapreduce/src
+TARGETPATH=/home/galaxy/galaxy/yarnapp/mapreduce/src
 DESPATH=/home/galaxy
 
 # add lib path
@@ -20,7 +20,6 @@ YARNCOMMON=/home/galaxy/hadoop-3.2.2/share/hadoop/yarn/hadoop-yarn-common-3.2.2.
 # compile java file
 javac -encoding utf-8 -cp $APACHECOMMON\
 :$APACHEMAPREDUCE\
-:$GALAXYPATH\
 :$COMMONCLI\
 :$GOOGLECOMMON\
 :$FSPATH\
@@ -28,7 +27,7 @@ javac -encoding utf-8 -cp $APACHECOMMON\
 :$YARNCLI\
 :$YARNCOMMON\
 :$GALAXYPATH\
- $TARGETPATH/WordCountv3.java -d $DESPATH
+ $TARGETPATH/ApplicationMaster.java -d $DESPATH
 
 # create jar
-# jar cf wc2.jar WordCount*.class
+# jar cf wc2.jar WordCount2*.class

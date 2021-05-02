@@ -1,7 +1,7 @@
 # function: compile .java and create jar
 
 # add path of java file and output path 
-TARGETPATH=/home/galaxy/galaxy/dataprocess/mapreduce/src
+TARGETPATH=/home/galaxy/galaxy/dataprocess/mapreduce/wordcount/src
 DESPATH=/home/galaxy
 
 # add lib path
@@ -28,7 +28,7 @@ javac -encoding utf-8 -cp $APACHECOMMON\
 :$YARNCLI\
 :$YARNCOMMON\
 :$GALAXYPATH\
- $TARGETPATH/WordCountv3.java -d $DESPATH
+ $TARGETPATH/Mapper.java -d $DESPATH
 
 # create jar
 # jar cf wc2.jar WordCount*.class
