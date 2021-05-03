@@ -12,12 +12,12 @@ public class Hello{
     public static void main(String[] args) throws Exception {
         System.out.println("Hello World!");
 
-        // ----------------Init instance of fs----------------
-        YarnConfiguration conf = new YarnConfiguration();
-        FileSystem fs = FileSystem.get(conf);
-        Path helloPath = new Path(fs.getHomeDirectory(), "hello");
-        // ----------------Create Hello----------------
-        FSDataOutputStream helloFile = fs.create(helloPath);
-        helloFile.writeBytes("Hello World!\n");
+        // // ----------------Init instance of fs----------------
+        // YarnConfiguration conf = new YarnConfiguration();
+        // FileSystem fs = FileSystem.get(conf);
+        // Path helloPath = new Path(fs.getHomeDirectory(), "hello");
+        // // ----------------Create Hello----------------
+        // FSDataOutputStream helloFile = fs.create(helloPath);
+        // helloFile.writeBytes("Hello World!\n");
     }
 }
