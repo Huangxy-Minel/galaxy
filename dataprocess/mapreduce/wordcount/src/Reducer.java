@@ -6,14 +6,18 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.FileWriter;
 
+import com.google.common.collect.Maps;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import galaxy.galaxyio.Reader;
 
-public class Redicer {
+public class Reducer {
     /**
         Function: complete a Redice task, run in container
         Para:
@@ -21,26 +25,38 @@ public class Redicer {
                 Type: String
      */
     public static void main(String[] args) throws Exception {
-        System.out.println("Enter Map function");
+        System.out.println("Enter Map function.");
 
         // ----------------Init----------------
         Path outputDir = new Path(args[0]);
         YarnConfiguration conf = new YarnConfiguration();
         FileSystem fs = FileSystem.get(conf);
-        FileInputStream inputStream = new FileInputStream("random_text");
+        FileInputStream inputStream = new FileInputStream("mapout_0");
         BufferedReader input = new BufferedReader(new InputStreamReader(inputStream));
         Path outputPath = new Path(args[0], "random_text_0_reduce");
-        fs.mkdirs(outputDir);
+        // fs.mkdirs(outputDir);
 
-        // ----------------Read input file----------------
-        // FSDataOutputStream mapout = fs.create(outputPath);
+        // ----------------Read input file and calculate sum----------------
+        System.out.println("Reading map file.");
+        Map<String, Integer> wordsSumMap = new HashMap<String, Integer>();       // key: word, value: sum
         String line = null;
         while ((line = input.readLine()) != null) {
-            for (String word : line.split(" ")){
-                mapout.writeBytes(word + " 1\n");
+            String[] words = line.split(" ");
+            if (!wordsSumMap.containsKey(words[0])){
+                wordsSumMap.put(words[0], 1);
+            }
+            else {
+                wordsSumMap.put(words[0], wordsSumMap.get(words[0]) + 1);
             }
         }
         inputStream.close();
         input.close();
+
+        // ----------------Write output file----------------
+        System.out.println("Writing result.");
+        FSDataOutputStream reduceOut = fs.create(outputPath);
+        for (Map.Entry<String, Integer> entry : wordsSumMap.entrySet()) {
+            reduceOut.writeBytes(entry.getKey() + " " + entry.getValue().toString() + "\n");
+        }
     }
 }

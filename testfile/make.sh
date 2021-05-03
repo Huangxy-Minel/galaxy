@@ -27,7 +27,7 @@ javac -encoding utf-8 -cp $APACHECOMMON\
 :$YARNCLI\
 :$YARNCOMMON\
 :$GALAXYPATH\
- $TARGETPATH/Hello.java -d $DESPATH
+ $TARGETPATH/TestInteger.java -d $DESPATH
 
 # create jar
 # jar cf wc2.jar WordCount*.class
