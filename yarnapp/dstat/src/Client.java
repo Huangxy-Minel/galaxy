@@ -108,7 +108,7 @@ public class Client {
         // specify resource requirements for AM
         //////////////////////////////////////////////////
         Resource capability = Records.newRecord(Resource.class);
-        capability.setMemory(256);
+        capability.setMemory(128);
         capability.setVirtualCores(1);
 
     // Finally, set-up ApplicationSubmissionContext for the application

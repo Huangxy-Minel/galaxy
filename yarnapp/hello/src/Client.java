@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class Client {
+    /**
+        Input Para: args[0]: Job name
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("Galaxy version 1.0");
         System.out.println("Author: MinelHuang");
@@ -50,11 +53,11 @@ public class Client {
         FileSystem fs = FileSystem.get(conf);
         Path src = new Path(jar);
         Path dest = new Path(fs.getHomeDirectory(), src.getName());
-        System.out.format("Copying JAR from %s to %s%n", src, dest);
-        fs.copyFromLocalFile(src, dest);
+        // System.out.format("Copying JAR from %s to %s%n", src, dest);
+        // fs.copyFromLocalFile(src, dest);
 
         // ----------------Config AM----------------
-        ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest);
+        ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest, args[0]);
 
         // ----------------Submit AM to RM----------------
         ApplicationId appId = appContext.getApplicationId();
@@ -79,7 +82,7 @@ public class Client {
             appId, state);
     }
 
-    public static ApplicationSubmissionContext createAM(YarnClient yarnClient, YarnConfiguration conf, Path jarURL) throws Exception {
+    public static ApplicationSubmissionContext createAM(YarnClient yarnClient, YarnConfiguration conf, Path jarURL, String jobName) throws Exception {
         System.out.println("create and configure AM");
         // Apply container for AM
         YarnClientApplication app = yarnClient.createApplication();
@@ -118,12 +121,12 @@ public class Client {
 
         // ----------------Config resource requirements for AM----------------
         Resource capability = Records.newRecord(Resource.class);
-        capability.setMemory(256);
+        capability.setMemory(128);
         capability.setVirtualCores(1);
         // Set up ApplicationSubmissionContext
         ApplicationSubmissionContext appContext =
             app.getApplicationSubmissionContext();
-        appContext.setApplicationName("Hello-World"); // application name
+        appContext.setApplicationName(jobName); // application name
         appContext.setAMContainerSpec(container);
         appContext.setResource(capability);
         appContext.setQueue("default"); // queue

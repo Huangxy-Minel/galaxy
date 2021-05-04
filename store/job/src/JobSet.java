@@ -11,13 +11,13 @@ import galaxy.store.job.Job;
 import java.util.HashSet;
 
 public class JobSet {
-    public static HashSet<Job> set = new HashSet<Job>();
+    public HashSet<Job> set = new HashSet<Job>();
     /**
         Function: Add element to set
         Input Para: Job
         Output Para: None
      */
-    public static void addJob(Job job) throws Exception {
+    public void addJob(Job job) throws Exception {
         set.add(job);
     }
 
@@ -26,7 +26,7 @@ public class JobSet {
         Input Para: Job
         Output Para: None
      */
-    public static void delJob(Job job) throws Exception {
+    public void delJob(Job job) throws Exception {
         set.remove(job);
     }
 }

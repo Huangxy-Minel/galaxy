@@ -8,19 +8,18 @@
 package galaxy.store.job;
 
 import galaxy.store.job.Job;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
 
-public class JobQueue {
-    public static Queue<Job> queue = new LinkedList<Job>();
+public class JobList {
+    public ArrayList<Job> list = new ArrayList<Job>();
 
     /**
         Function: Add element to queue
         Input Para: Job
         Output Para: None
      */
-    public static void addJob(Job job) throws Exception {
-        queue.offer(job);
+    public void addJob(Job job) throws Exception {
+        list.add(job);
     }
 
     /**
@@ -28,7 +27,7 @@ public class JobQueue {
         Input Para: None
         Output Para: Job
      */
-    public static void delJob(Job job) throws Exception {
-        queue.remove(job);
+    public void delJob(Job job) throws Exception {
+        list.remove(job);
     }
 }

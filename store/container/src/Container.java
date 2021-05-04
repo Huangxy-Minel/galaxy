@@ -8,7 +8,7 @@
 package galaxy.store.container;
 
 public class Container {
-    public static int vMemory = 64;
-    public static int vCores = 1;
-    public static String jobID = "";
+    public int vMemory = 64;
+    public int vCores = 1;
+    public String jobID = "";
 }
