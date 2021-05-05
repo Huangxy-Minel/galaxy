@@ -41,6 +41,7 @@ import java.util.Map;
 public class ApplicationMaster {
     public static void main(String[] args) throws Exception {
         try {
+            System.out.println(args[0]);
             // ----------------Create clients to talk to RM & NM----------------
             YarnConfiguration conf = new YarnConfiguration();
             // Client for RM

@@ -23,7 +23,7 @@ public class GalaxyServer {
 
     public static void main(String[] args) throws Exception {
         // ----------------Init----------------
-        int maxJobNum = 2;
+        int maxJobNum = 1;
         JobList jobList = new JobList();
         JobSet runningJobs = new JobSet();
         ContainerPool containerPool = new ContainerPool();
@@ -38,7 +38,7 @@ public class GalaxyServer {
             Job newJob = new Job();
             newJob.jobName = "test_" + Integer.toString(i);
             newJob.jobId = dateFormat.format(date) + "_" + Integer.toString(i);
-            newJob.clientPath = "galaxy.yarnapp.hello.Client " + newJob.jobName;
+            newJob.clientPath = "galaxy.yarnapp.mapreduce.Client " + newJob.jobName;
             jobList.addJob(newJob);
         }
 
@@ -54,6 +54,8 @@ public class GalaxyServer {
                     Container AMContainer = new Container();
                     AMContainer.vMemory = 128;
                     job.allocateContainer.add(AMContainer);        // add AM
+                    job.vCores += 1;
+                    job.vMemory += 64 + 128;
                     nextRoundJobs.addJob(job);
                 }
             }
@@ -78,7 +80,9 @@ public class GalaxyServer {
                     Executor newExecutor = new Executor();
                     ProcessBuilder processBuilder = new ProcessBuilder();
                     newExecutor.job = job;
-                    String cmd = "yarn jar /home/galaxy/galaxy.jar " + job.clientPath;
+                    String cmd = "yarn jar /home/galaxy/galaxy.jar " + job.clientPath + " " + Integer.toString(job.vCores) + " " + 
+                                                                       Integer.toString(job.vMemory) + " " + Integer.toString(job.priority) + 
+                                                                       job.fileDir;
                     processBuilder.command(cmd.split("\\s+"));
                     newExecutor.process = processBuilder.start();
                     executorList.add(newExecutor);
@@ -102,6 +106,7 @@ public class GalaxyServer {
                 it_executorList.remove();
             }
             round++;
+            Thread.currentThread().sleep(5000);
         }
     }
 }

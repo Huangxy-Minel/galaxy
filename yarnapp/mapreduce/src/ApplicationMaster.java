@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -33,16 +34,43 @@ import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
+import galaxy.store.container.Container;
+import galaxy.store.container.ContainerPool;
+import galaxy.store.flow.Flow;
+
 import java.io.File;
 import java.util.Map;
 
 
 public class ApplicationMaster {
+    /**
+        Input Para: 
+            args[0]: VCores num
+            args[1]: vMemory num
+            args[2]: priority
+            args[3]: Input file dir
+     */
     public static void main(String[] args) throws Exception {
         try {
             // ----------------Init----------------
             YarnConfiguration conf = new YarnConfiguration();
             FileSystem fs = FileSystem.get(conf);
+            ContainerPool containerPool = new ContainerPool();
+            containerPool.freeVCores = Interger.valueOf(args[0]).intValue() - 1;
+            containerPool.freeMemory = Interger.valueOf(args[1]).intValue() - 128;
+            int jobPriority = Interger.valueOf(args[2]).intValue();
+            Path fileDir = new Path(args[3]);
+            ArrayList<Flow> flowList = new ArrayList<Flow>();
+
+            // ----------------Init Flow----------------
+            ContentSummary content = fs.getContentSummary(fileDir);
+            int fileCount = content.getFileCount();
+            for (i = 0; i < fileCount i++) {
+                flow = new Flow();
+                flow.flowPath = fileDir + "random_text" + Integer.toString(i);
+                flowList.add(flow);
+            }
+
             // ----------------Create clients to talk to RM & NM----------------
             // Client for RM
             AMRMClient<ContainerRequest> rmClient = AMRMClient.createAMRMClient();
@@ -57,10 +85,21 @@ public class ApplicationMaster {
             rmClient.registerApplicationMaster("", 0, "");
             System.out.println("registerApplicationMaster: complete");
 
+            // ----------------Start----------------
+            while (!flowList.isEmpty()) {
+                // ----------------GalaxyScheduler-AM----------------
+                for (flow : flowList) {
+                    flow.allocateContainer
+                }
+            }
+            
+
+            
+
             // ----------------Ask for container----------------
             // Config requirements of containers
             Priority priority = Records.newRecord(Priority.class);
-            priority.setPriority(0);
+            priority.setPriority(jobPriority);
             Resource capability = Records.newRecord(Resource.class);
             capability.setMemory(64);
             capability.setVirtualCores(1);

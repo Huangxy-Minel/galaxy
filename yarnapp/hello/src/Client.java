@@ -35,7 +35,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Client {
     /**
-        Input Para: args[0]: Job name
+        Input Para: 
+            args[0]: Job name
+            args[1]: VCores num
+            args[2]: Memory num
      */
     public static void main(String[] args) throws Exception {
         System.out.println("Galaxy version 1.0");
@@ -53,8 +56,8 @@ public class Client {
         FileSystem fs = FileSystem.get(conf);
         Path src = new Path(jar);
         Path dest = new Path(fs.getHomeDirectory(), src.getName());
-        // System.out.format("Copying JAR from %s to %s%n", src, dest);
-        // fs.copyFromLocalFile(src, dest);
+        System.out.format("Copying JAR from %s to %s%n", src, dest);
+        fs.copyFromLocalFile(src, dest);
 
         // ----------------Config AM----------------
         ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest, args[0]);
@@ -92,8 +95,8 @@ public class Client {
         // Add launch Cmd
         String amLaunchCmd =
             String.format(
-                "$JAVA_HOME/bin/java -Xmx256M %s 1>%s/stdout 2>%s/stderr",
-                ApplicationMaster.class.getName(),
+                "$JAVA_HOME/bin/java -Xmx128M %s 1>%s/stdout 2>%s/stderr",
+                ApplicationMaster.class.getName() + " hello",
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR,
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR);
         container.setCommands(Lists.newArrayList(amLaunchCmd));

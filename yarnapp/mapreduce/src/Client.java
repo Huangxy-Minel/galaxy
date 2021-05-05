@@ -35,7 +35,12 @@ import java.util.concurrent.TimeUnit;
 
 public class Client {
     /**
-        Input Para: args[0]: Job name
+        Input Para: 
+            args[0]: Job name
+            args[1]: VCores num
+            args[2]: vMemory num
+            args[3]: priority
+            args[4]: Input file dir
      */
     public static void main(String[] args) throws Exception {
         System.out.println("Galaxy version 1.0");
@@ -57,7 +62,7 @@ public class Client {
         fs.copyFromLocalFile(src, dest);
 
         // ----------------Config AM----------------
-        ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest, args[0]);
+        ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest, args[0], args[1], args[2], args[3], args[4]);
 
         // ----------------Submit AM to RM----------------
         ApplicationId appId = appContext.getApplicationId();
@@ -82,7 +87,8 @@ public class Client {
             appId, state);
     }
 
-    public static ApplicationSubmissionContext createAM(YarnClient yarnClient, YarnConfiguration conf, Path jarURL, String jobName) throws Exception {
+    public static ApplicationSubmissionContext createAM(YarnClient yarnClient, YarnConfiguration conf, Path jarURL, String jobName, String vCores, 
+                                                        String vMemory, String priority, String fileDir) throws Exception {
         System.out.println("create and configure AM");
         System.out.println(ApplicationMaster.class.getName());
         // Apply container for AM
@@ -93,8 +99,8 @@ public class Client {
         // Add launch Cmd
         String amLaunchCmd =
             String.format(
-                "$JAVA_HOME/bin/java -Xmx256M %s 1>%s/stdout 2>%s/stderr",
-                ApplicationMaster.class.getName(),
+                "$JAVA_HOME/bin/java -Xmx128M %s 1>%s/stdout 2>%s/stderr",
+                ApplicationMaster.class.getName() + " " + vCores + " " + vMemory + " " + priority + " " + filePath,
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR,
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR);
         container.setCommands(Lists.newArrayList(amLaunchCmd));

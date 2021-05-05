@@ -19,9 +19,12 @@ public class Job {
     public String jobId = "";
     public String jobType = "mapreduce";
     public String clientPath = "";
+    public String fileDir = "";
     public Integer priority = 0;
     public String status = "waiting";
     public ArrayList<Container> allocateContainer = new ArrayList<Container>();
+    public int vCores = 0;
+    public int vMemory = 0;
 
     /**
         Function: Create default Job class.
