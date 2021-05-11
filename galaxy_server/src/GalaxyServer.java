@@ -16,6 +16,7 @@ import java.lang.Thread;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -32,15 +33,7 @@ public class GalaxyServer {
         Integer round = 0;
 
         // ----------------Generate random jobs----------------
-        Date date = new Date();
-        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        for (int i = 0; i < maxJobNum; i++) {
-            Job newJob = new Job();
-            newJob.jobName = "test_" + Integer.toString(i);
-            newJob.jobId = dateFormat.format(date) + "_" + Integer.toString(i);
-            newJob.clientPath = "galaxy.yarnapp.mapreduce.Client " + newJob.jobName;
-            jobList.addJob(newJob);
-        }
+        randomJob(maxJobNum, jobList);
 
         // ----------------Server starts----------------
         while (!jobList.list.isEmpty()){
@@ -107,6 +100,37 @@ public class GalaxyServer {
             }
             round++;
             Thread.currentThread().sleep(5000);
+        }
+    }
+
+    /**
+        Function: Generate Job randomly
+        Input Para:
+            maxJobNum
+            jobList
+        Output Para:
+            jobList
+    */
+    public static void randomJob (int maxJobNum, JobList jobList) {
+        // ----------------Init----------------
+        Random random = new Random();
+        String[] clientPath = {"galaxy.yarnapp.hello.Client", "galaxy.yarnapp.mapreduce.Client", "galaxy.yarnapp.machine.Client"};   // Three types of jobs
+        String[] fileDir = {"", "/user/galaxy/mrinput", "/user/galaxy/mlinput"};
+        String[] jobName = {"latency-critical", "word-count", "logistic-regression"};
+        Date date = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+
+        // ----------------Generate----------------
+        for (i = 0, i < maxJobNum, i++) {
+            Job newJob = new Job();
+            int jobType = random.nextInt(clientPath.size());
+            newJob.jobName = jobName[jobType] + "_" + Integer.toString(i);
+            newJob.jobId = dateFormat.format(date) + "_" + Integer.toString(i);
+            newJob.clientPath = clientPath[jobType];
+            newJob.fileDir = fileDir[jobType];
+            newJob.priority = jobType;
+            newJob.order = i;
+            jobList.addJob(newJob);
         }
     }
 }
