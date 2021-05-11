@@ -24,8 +24,8 @@ public class JobList {
 
     /**
         Function: Del element to queue
-        Input Para: None
-        Output Para: Job
+        Input Para: Job
+        Output Para: None
      */
     public void delJob(Job job) throws Exception {
         list.remove(job);

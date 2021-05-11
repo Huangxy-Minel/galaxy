@@ -21,10 +21,14 @@ public class Job {
     public String clientPath = "";
     public String fileDir = "";
     public Integer priority = 0;
+
     public Integer order = 0;
+    public Integer requireCompleteTime = 1;
+    public Integer waitingTime = 0;
+    public String completeTime = "";
     public String status = "waiting";
     public ArrayList<Container> allocateContainer = new ArrayList<Container>();
-    public int vCores = 0;
+    public int vCores = 0;      // user requirement
     public int vMemory = 0;
 
     /**

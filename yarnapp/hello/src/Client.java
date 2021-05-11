@@ -56,8 +56,8 @@ public class Client {
         FileSystem fs = FileSystem.get(conf);
         Path src = new Path(jar);
         Path dest = new Path(fs.getHomeDirectory(), src.getName());
-        System.out.format("Copying JAR from %s to %s%n", src, dest);
-        fs.copyFromLocalFile(src, dest);
+        // System.out.format("Copying JAR from %s to %s%n", src, dest);
+        // fs.copyFromLocalFile(src, dest);
 
         // ----------------Config AM----------------
         ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest, args[0]);
@@ -66,6 +66,10 @@ public class Client {
         ApplicationId appId = appContext.getApplicationId();
         System.out.println("Submitting application " + appId);
         yarnClient.submitApplication(appContext);
+
+        //  ----------------Test----------------
+        long startTime = System.currentTimeMillis();
+        //  ----------------Test----------------
 
         // ----------------Monitor AM state----------------
         ApplicationReport report = yarnClient.getApplicationReport(appId);
@@ -81,6 +85,11 @@ public class Client {
         state = report.getYarnApplicationState();
         }
 
+        //  ----------------Test----------------
+        long endTime = System.currentTimeMillis();
+        System.out.println("Client runtime: " + (endTime - startTime) + " ms");
+        //  ----------------Test----------------
+
         System.out.printf("Application %s finished with state %s%n",
             appId, state);
     }
@@ -95,7 +104,7 @@ public class Client {
         // Add launch Cmd
         String amLaunchCmd =
             String.format(
-                "$JAVA_HOME/bin/java -Xmx128M %s 1>%s/stdout 2>%s/stderr",
+                "$JAVA_HOME/bin/java -Xmx64M %s 1>%s/stdout 2>%s/stderr",
                 ApplicationMaster.class.getName() + " hello",
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR,
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR);
@@ -124,7 +133,7 @@ public class Client {
 
         // ----------------Config resource requirements for AM----------------
         Resource capability = Records.newRecord(Resource.class);
-        capability.setMemory(128);
+        capability.setMemory(64);
         capability.setVirtualCores(1);
         // Set up ApplicationSubmissionContext
         ApplicationSubmissionContext appContext =

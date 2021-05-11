@@ -84,6 +84,10 @@ public class ApplicationMaster {
                 }
                 TimeUnit.SECONDS.sleep(1);
             }
+            
+            //  ----------------Test----------------
+            long startTime = System.currentTimeMillis();
+            //  ----------------Test----------------
 
             // ----------------Wait for containers to complete----------------
             boolean completedContainer = false;
@@ -96,6 +100,12 @@ public class ApplicationMaster {
                 }
                 TimeUnit.SECONDS.sleep(1);
             }
+
+            //  ----------------Test----------------
+            long endTime = System.currentTimeMillis();
+            System.out.println("Container deploy plus run time: " + (endTime - startTime) + "ms");
+            //  ----------------Test----------------
+
             // ----------------Un-register with ResourceManager----------------
             System.out.println("unregister");
             rmClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");

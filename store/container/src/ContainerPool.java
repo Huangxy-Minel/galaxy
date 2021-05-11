@@ -8,6 +8,7 @@
 package galaxy.store.container;
 
 import galaxy.store.container.Container;
+import galaxy.store.job.Job;
 import java.util.HashSet;
 import java.util.ArrayList;
 
@@ -23,14 +24,14 @@ public class ContainerPool {
         Input Para: Container
         Output Para: None
      */
-    public boolean addContainer(ArrayList<Container> containerList) throws Exception {
+    public boolean addContainerfromList(ArrayList<Container> containerList) throws Exception {
         int reservedMemory = 0;
         int reservedCores = 0;
         for (Container container : containerList) {
             reservedMemory += container.vMemory;
             reservedCores += container.vCores;
         }
-        if (freeMemory > reservedMemory && freeVCores > reservedCores) {
+        if (freeMemory >= reservedMemory && freeVCores >= reservedCores) {
             for (Container container : containerList) {
                 workingPool.add(container);
             }
@@ -48,7 +49,7 @@ public class ContainerPool {
         Input Para: Container
         Output Para: true: success
      */
-    public boolean delContainer(ArrayList<Container> containerList) throws Exception {
+    public boolean delContainerfromList(ArrayList<Container> containerList) throws Exception {
         for (Container container : containerList) {
             if (workingPool.contains(container)) {
                 freeMemory += container.vMemory;
@@ -58,6 +59,30 @@ public class ContainerPool {
             else {
                 return false;
             }
+        }
+        return true;
+    }
+
+    public boolean addContainerfromJob (Job job) throws Exception {
+        if (freeMemory >= job.vMemory && freeVCores >= job.vCores) {
+            freeMemory -= job.vMemory;
+            freeVCores -= job.vCores;
+        }
+        else {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean delContainerfromJob (Job job) throws Exception {
+        freeMemory += job.vMemory;
+        freeVCores += job.vCores;
+        return true;
+    }
+
+    public boolean ifEnoughContainer (Job job) throws Exception {
+        if (freeMemory < job.vMemory || freeVCores < job.vCores) {
+            return false;
         }
         return true;
     }
