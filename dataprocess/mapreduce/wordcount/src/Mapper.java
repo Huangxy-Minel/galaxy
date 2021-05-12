@@ -19,6 +19,8 @@ public class Mapper {
         Para:
             arg[0]: output dir
                 Type: String
+            arg[1]: idx
+                Type: String
      */
     public static void main(String[] args) throws Exception {
         System.out.println("Enter Map function");
@@ -31,7 +33,7 @@ public class Mapper {
         // ----------------Read input file and write <key, value>----------------
         FileInputStream inputStream = new FileInputStream("random_text");
         BufferedReader input = new BufferedReader(new InputStreamReader(inputStream));
-        Path outputPath = new Path(args[0], "mapout_0");
+        Path outputPath = new Path(args[0], "mapout_" + args[1]);
         fs.mkdirs(outputDir);
         FSDataOutputStream mapout = fs.create(outputPath);
         String line = null;

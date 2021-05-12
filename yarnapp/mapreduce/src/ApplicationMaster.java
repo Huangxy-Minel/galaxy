@@ -34,12 +34,13 @@ import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
-import galaxy.store.container.Container;
 import galaxy.store.container.ContainerPool;
 import galaxy.store.flow.Flow;
 
 import java.io.File;
 import java.util.Map;
+import java.lang.Integer;
+import java.util.ArrayList;
 
 
 public class ApplicationMaster {
@@ -56,18 +57,18 @@ public class ApplicationMaster {
             YarnConfiguration conf = new YarnConfiguration();
             FileSystem fs = FileSystem.get(conf);
             ContainerPool containerPool = new ContainerPool();
-            containerPool.freeVCores = Interger.valueOf(args[0]).intValue() - 1;
-            containerPool.freeMemory = Interger.valueOf(args[1]).intValue() - 128;
-            int jobPriority = Interger.valueOf(args[2]).intValue();
+            containerPool.freeVCores = Integer.valueOf(args[0]).intValue() - 1;
+            containerPool.freeMemory = Integer.valueOf(args[1]).intValue() - 64;
+            int jobPriority = Integer.valueOf(args[2]).intValue();
             Path fileDir = new Path(args[3]);
             ArrayList<Flow> flowList = new ArrayList<Flow>();
 
             // ----------------Init Flow----------------
             ContentSummary content = fs.getContentSummary(fileDir);
-            int fileCount = content.getFileCount();
-            for (i = 0; i < fileCount i++) {
-                flow = new Flow();
-                flow.flowPath = fileDir + "random_text" + Integer.toString(i);
+            long fileCount = content.getFileCount();
+            for (int i = 0; i < fileCount; i++) {
+                Flow flow = new Flow();
+                flow.flowPath = args[3] + "random_text" + Integer.toString(i);
                 flowList.add(flow);
             }
 
@@ -85,56 +86,97 @@ public class ApplicationMaster {
             rmClient.registerApplicationMaster("", 0, "");
             System.out.println("registerApplicationMaster: complete");
 
-            // ----------------Start----------------
-            while (!flowList.isEmpty()) {
-                // ----------------GalaxyScheduler-AM----------------
-                for (flow : flowList) {
-                    flow.allocateContainer
-                }
-            }
-            
-
-            
-
-            // ----------------Ask for container----------------
-            // Config requirements of containers
+            // ----------------Init record of contianer----------------
             Priority priority = Records.newRecord(Priority.class);
             priority.setPriority(jobPriority);
             Resource capability = Records.newRecord(Resource.class);
-            capability.setMemory(64);
-            capability.setVirtualCores(1);
-            // Make container requests to ResourceManager
+
+            // ----------------Start----------------
+
+            // ----------------GalaxyScheduler-AM----------------
+            for (Flow flow : flowList) {
+                flow.vCores = containerPool.freeVCores / flowList.size();
+                flow.vMemory = containerPool.freeMemory / flowList.size();
+                // Config requirements of containers
+                capability.setVirtualCores(flow.vCores);
+                capability.setMemory(flow.vMemory);
+                // Make container requests to ResourceManager
+                ContainerRequest containerAsk = new ContainerRequest(capability, null, null, priority);
+                System.out.println("adding container ask:" + containerAsk);
+                rmClient.addContainerRequest(containerAsk);
+                TimeUnit.SECONDS.sleep(1);
+            }
+
+            // ----------------Begin Map----------------
+            System.out.println("----------------Begin Map----------------");
+            // ----------------Wait and launch containers----------------
+            int allocatedContainer = 0;
+            String cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Mapper /user/galaxy/mroutput/";
+            while (allocatedContainer < flowList.size()) {
+                System.out.println("Waiting for containers......");
+                AllocateResponse response = rmClient.allocate(0);
+                for (Container container : response.getAllocatedContainers()) {
+                    ContainerId containerID = container.getId();
+                    System.out.println("Get a container! ID: " + containerID.toString());
+                    ContainerLaunchContext ctx = createContainerLaunchContext(conf, fs, cmd, flowList.get(allocatedContainer).flowPath, allocatedContainer, "random_text");
+                    System.out.println("Launching container " + container);
+                    nmClient.startContainer(container, ctx);
+                    allocatedContainer++;
+                }
+                TimeUnit.SECONDS.sleep(1);
+            }
+
+            // ----------------Wait for containers to complete----------------
+            int completedContainer = 0;
+            while (completedContainer < flowList.size()) {
+                System.out.println("allocate (wait)");
+                AllocateResponse response = rmClient.allocate(0);
+                for (ContainerStatus status : response.getCompletedContainersStatuses()) {
+                    System.out.println("Completed container " + status);
+                    completedContainer++;
+                }
+                TimeUnit.SECONDS.sleep(1);
+            }
+            System.out.println("----------------End Map----------------");
+
+            // ----------------Begin Reduce----------------
+            System.out.println("----------------Begin Reduce----------------");
+            capability.setVirtualCores(containerPool.freeVCores);
+            capability.setMemory(containerPool.freeMemory);
             ContainerRequest containerAsk = new ContainerRequest(capability, null, null, priority);
             System.out.println("adding container ask:" + containerAsk);
             rmClient.addContainerRequest(containerAsk);
 
             // ----------------Wait and launch containers----------------
-            int allocatedContainer = 0;
+            allocatedContainer = 0;
+            String cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Reducer /user/galaxy/mroutput/";
             while (allocatedContainer < 1) {
                 System.out.println("Waiting for containers......");
                 AllocateResponse response = rmClient.allocate(0);
                 for (Container container : response.getAllocatedContainers()) {
                     ContainerId containerID = container.getId();
                     System.out.println("Get a container! ID: " + containerID.toString());
-                    allocatedContainer++;
-                    ContainerLaunchContext ctx = createContainerLaunchContext(conf, fs);
+                    ContainerLaunchContext ctx = createContainerLaunchContext(conf, fs, cmd, flowList.get(allocatedContainer).flowPath, allocatedContainer, "random_text");
                     System.out.println("Launching container " + container);
                     nmClient.startContainer(container, ctx);
+                    allocatedContainer++;
                 }
                 TimeUnit.SECONDS.sleep(1);
             }
 
             // ----------------Wait for containers to complete----------------
-            boolean completedContainer = false;
-            while (!completedContainer) {
+            int completedContainer = 0;
+            while (completedContainer < flowList.size()) {
                 System.out.println("allocate (wait)");
                 AllocateResponse response = rmClient.allocate(0);
                 for (ContainerStatus status : response.getCompletedContainersStatuses()) {
-                    completedContainer = true;
                     System.out.println("Completed container " + status);
+                    completedContainer++;
                 }
                 TimeUnit.SECONDS.sleep(1);
             }
+            System.out.println("----------------End Redice----------------");
+
             // ----------------Un-register with ResourceManager----------------
             System.out.println("unregister");
             rmClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
@@ -144,15 +186,15 @@ public class ApplicationMaster {
             t.printStackTrace();
         }
     }
-    public static ContainerLaunchContext createContainerLaunchContext(YarnConfiguration conf, FileSystem fs) throws Exception {
+    public static ContainerLaunchContext createContainerLaunchContext (YarnConfiguration conf, FileSystem fs, String cmd, String flowPath, int idx, String fileName) throws Exception {
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
         // Set launch commands
         // final String cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Mapper /user/galaxy/lcoutput/";
-        final String cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Reducer /user/galaxy/lcoutput/";
+        // final String cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Reducer /user/galaxy/lcoutput/";
         String ctnLaunchCmd =
             String.format(
                 "%s 1>%s/stdout 2>%s/stderr",
-                cmd, 
+                cmd + " " + String.valueOf(idx), 
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR,
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR);
         ctx.setCommands(Lists.newArrayList(ctnLaunchCmd));
@@ -160,11 +202,12 @@ public class ApplicationMaster {
         Path jarPath = new Path(fs.getHomeDirectory(), "galaxy.jar");
         LocalResource containerJar = addResourse(jarPath, conf, fs);
         // Add input file for Container
-        Path filePath = new Path(fs.getHomeDirectory(), "lcoutput/mapout_0");
+        // Path filePath = new Path(fs.getHomeDirectory(), "lcoutput/mapout_0");
+        Path filePath = new Path(flowPath);
         LocalResource inputFile = addResourse(filePath, conf, fs);
         ctx.setLocalResources(
             ImmutableMap.of("Container.jar", containerJar,
-                            "mapout_0",inputFile));
+                            fileName, inputFile));
         // Set classpath for Client
         Map<String, String> ctxEnv = Maps.newHashMap();
         for (String c : conf.getStrings(

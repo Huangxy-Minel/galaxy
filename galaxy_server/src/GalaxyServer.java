@@ -25,7 +25,7 @@ public class GalaxyServer {
 
     public static void main(String[] args) throws Exception {
         // ----------------Init----------------
-        int maxJobNum = 10;
+        int maxJobNum = 1;
         JobList jobList = new JobList();
         JobSet runningJobs = new JobSet();
         ContainerPool containerPool = new ContainerPool();
@@ -103,14 +103,14 @@ public class GalaxyServer {
         Random random = new Random();
         int typeNum = 3;
         String[] clientPath = {"galaxy.yarnapp.hello.Client", "galaxy.yarnapp.mapreduce.Client", "galaxy.yarnapp.machine.Client"};   // Three types of jobs
-        String[] fileDir = {"", "/user/galaxy/mrinput", "/user/galaxy/mlinput"};
+        String[] fileDir = {"/", "/user/galaxy/mrinput/", "/user/galaxy/mlinput/"};
         String[] jobName = {"latency-critical", "word-count", "logistic-regression"};
 
         // ----------------Generate----------------
         for (int i = 0; i < maxJobNum; i++) {
             Job newJob = new Job();
             int jobType = random.nextInt(typeNum);
-            jobType = 0;
+            jobType = 1;
             newJob.jobName = jobName[jobType] + "_" + Integer.toString(i);
             newJob.clientPath = clientPath[jobType];
             newJob.fileDir = fileDir[jobType];

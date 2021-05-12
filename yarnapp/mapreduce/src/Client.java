@@ -58,8 +58,8 @@ public class Client {
         FileSystem fs = FileSystem.get(conf);
         Path src = new Path(jar);
         Path dest = new Path(fs.getHomeDirectory(), src.getName());
-        System.out.format("Copying JAR from %s to %s%n", src, dest);
-        fs.copyFromLocalFile(src, dest);
+        // System.out.format("Copying JAR from %s to %s%n", src, dest);
+        // fs.copyFromLocalFile(src, dest);
 
         // ----------------Config AM----------------
         ApplicationSubmissionContext appContext = createAM(yarnClient, conf, dest, args[0], args[1], args[2], args[3], args[4]);
@@ -100,7 +100,7 @@ public class Client {
         String amLaunchCmd =
             String.format(
                 "$JAVA_HOME/bin/java -Xmx128M %s 1>%s/stdout 2>%s/stderr",
-                ApplicationMaster.class.getName() + " " + vCores + " " + vMemory + " " + priority + " " + filePath,
+                ApplicationMaster.class.getName() + " " + vCores + " " + vMemory + " " + priority + " " + fileDir,
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR,
                 ApplicationConstants.LOG_DIR_EXPANSION_VAR);
         container.setCommands(Lists.newArrayList(amLaunchCmd));

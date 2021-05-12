@@ -25,7 +25,7 @@ public class Reducer {
                 Type: String
      */
     public static void main(String[] args) throws Exception {
-        System.out.println("Enter Map function.");
+        System.out.println("Enter Reduce function.");
 
         // ----------------Init----------------
         Path outputDir = new Path(args[0]);
