@@ -70,6 +70,9 @@ public class ApplicationMaster {
             rmClient.addContainerRequest(containerAsk);
 
             // ----------------Wait and launch containers----------------
+            //  ----------------Test----------------
+            long startTime = System.currentTimeMillis();
+            //  ----------------Test----------------
             int allocatedContainer = 0;
             while (allocatedContainer < 1) {
                 System.out.println("Waiting for containers......");
@@ -84,10 +87,6 @@ public class ApplicationMaster {
                 }
                 TimeUnit.SECONDS.sleep(1);
             }
-            
-            //  ----------------Test----------------
-            long startTime = System.currentTimeMillis();
-            //  ----------------Test----------------
 
             // ----------------Wait for containers to complete----------------
             boolean completedContainer = false;

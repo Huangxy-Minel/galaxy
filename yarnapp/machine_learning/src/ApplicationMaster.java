@@ -1,4 +1,4 @@
-package galaxy.yarnapp.mapreduce;
+package galaxy.yarnapp.machine_learning;
 
 import com.google.common.collect.Lists;
 
@@ -120,7 +120,7 @@ public class ApplicationMaster {
 
             // ----------------Wait and launch containers----------------
             int allocatedContainer = 0;
-            String cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Mapper /user/galaxy/mroutput/" + args[4];
+            String cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Mapper /user/galaxy/mloutput/" + args[4];
             while (allocatedContainer < flowList.size()) {
                 System.out.println("Waiting for containers......");
                 AllocateResponse response = rmClient.allocate(0);
@@ -161,22 +161,22 @@ public class ApplicationMaster {
             startTime = System.currentTimeMillis();
             //  ----------------Test----------------
             Resource capability = Records.newRecord(Resource.class);
-            capability.setVirtualCores(containerPool.freeVCores);
-            capability.setMemory(containerPool.freeMemory);
+            capability.setVirtualCores(4);
+            capability.setMemory(1024);
             ContainerRequest containerAsk = new ContainerRequest(capability, null, null, priority);
             System.out.println("adding container ask:" + containerAsk);
             rmClient.addContainerRequest(containerAsk);
 
             // ----------------Wait and launch containers----------------
             allocatedContainer = 0;
-            cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Reducer /user/galaxy/mroutput/" + args[4];
+            cmd = "/home/galaxy/hadoop-3.2.2/bin/hadoop jar Container.jar galaxy.dataprocess.mapreduce.wordcount.Reducer /user/galaxy/mloutput/" + args[4];
             while (allocatedContainer < 1) {
                 System.out.println("Waiting for containers......");
                 AllocateResponse response = rmClient.allocate(0);
                 for (Container container : response.getAllocatedContainers()) {
                     ContainerId containerID = container.getId();
                     System.out.println("Get a container! ID: " + containerID.toString());
-                    ContainerLaunchContext ctx = createContainerLaunchContext(conf, fs, cmd, "/user/galaxy/mroutput/" + args[4], 1, "mapout", true);
+                    ContainerLaunchContext ctx = createContainerLaunchContext(conf, fs, cmd, "/user/galaxy/mloutput/" + args[4], 10, "mapout", true);
                     System.out.println("Launching container " + container);
                     nmClient.startContainer(container, ctx);
                     allocatedContainer++;
@@ -186,7 +186,7 @@ public class ApplicationMaster {
 
             // ----------------Wait for containers to complete----------------
             completedContainer = 0;
-            while (completedContainer < flowList.size()) {
+            while (completedContainer < 1) {
                 System.out.println("allocate (wait)");
                 AllocateResponse response = rmClient.allocate(0);
                 for (ContainerStatus status : response.getCompletedContainersStatuses()) {

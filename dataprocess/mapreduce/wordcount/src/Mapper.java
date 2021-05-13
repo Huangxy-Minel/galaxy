@@ -25,6 +25,10 @@ public class Mapper {
     public static void main(String[] args) throws Exception {
         System.out.println("Enter Map function");
 
+        //  ----------------Test----------------
+        long startTime = System.currentTimeMillis();
+        //  ----------------Test----------------
+
         // ----------------Init----------------
         Path outputDir = new Path(args[0]);
         YarnConfiguration conf = new YarnConfiguration();
@@ -44,5 +48,10 @@ public class Mapper {
         }
         inputStream.close();
         input.close();
+
+        //  ----------------Test----------------
+        long endTime = System.currentTimeMillis();
+        System.out.println("Container runtime: " + (endTime - startTime) + "ms");
+        //  ----------------Test----------------
     }
 }

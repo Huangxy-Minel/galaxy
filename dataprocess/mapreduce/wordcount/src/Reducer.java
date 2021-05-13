@@ -12,6 +12,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 
+import java.lang.Integer;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -23,34 +24,43 @@ public class Reducer {
         Para:
             arg[0]: output dir
                 Type: String
+            args[1]: num of mapout files
+                Type: String
      */
     public static void main(String[] args) throws Exception {
         System.out.println("Enter Reduce function.");
 
+        //  ----------------Test----------------
+        long startTime = System.currentTimeMillis();
+        //  ----------------Test----------------
+
         // ----------------Init----------------
         Path outputDir = new Path(args[0]);
+        int mapoutNum = Integer.parseInt(args[1]);
         YarnConfiguration conf = new YarnConfiguration();
         FileSystem fs = FileSystem.get(conf);
-        FileInputStream inputStream = new FileInputStream("mapout_0");
-        BufferedReader input = new BufferedReader(new InputStreamReader(inputStream));
-        Path outputPath = new Path(args[0], "random_text_0_reduce");
+        Path outputPath = new Path(args[0], "random_text_reduce");
         // fs.mkdirs(outputDir);
 
         // ----------------Read input file and calculate sum----------------
-        System.out.println("Reading map file.");
+        System.out.println("Reading map files.");
         Map<String, Integer> wordsSumMap = new HashMap<String, Integer>();       // key: word, value: sum
         String line = null;
-        while ((line = input.readLine()) != null) {
-            String[] words = line.split(" ");
-            if (!wordsSumMap.containsKey(words[0])){
-                wordsSumMap.put(words[0], 1);
+        for (int i = 0; i < mapoutNum; i++) {
+            FileInputStream inputStream = new FileInputStream("mapout_" + Integer.toString(i));
+            BufferedReader input = new BufferedReader(new InputStreamReader(inputStream));
+            while ((line = input.readLine()) != null) {
+                String[] words = line.split(" ");
+                if (!wordsSumMap.containsKey(words[0])) {
+                    wordsSumMap.put(words[0], 1);
+                }
+                else {
+                    wordsSumMap.put(words[0], wordsSumMap.get(words[0]) + 1);
+                }
             }
-            else {
-                wordsSumMap.put(words[0], wordsSumMap.get(words[0]) + 1);
-            }
+            inputStream.close();
+            input.close();
         }
-        inputStream.close();
-        input.close();
 
         // ----------------Write output file----------------
         System.out.println("Writing result.");
@@ -58,5 +68,10 @@ public class Reducer {
         for (Map.Entry<String, Integer> entry : wordsSumMap.entrySet()) {
             reduceOut.writeBytes(entry.getKey() + " " + entry.getValue().toString() + "\n");
         }
+
+        //  ----------------Test----------------
+        long endTime = System.currentTimeMillis();
+        System.out.println("Container runtime: " + (endTime - startTime) + "ms");
+        //  ----------------Test----------------
     }
 }

@@ -102,7 +102,7 @@ public class GalaxyServer {
         // ----------------Init----------------
         Random random = new Random();
         int typeNum = 3;
-        String[] clientPath = {"galaxy.yarnapp.hello.Client", "galaxy.yarnapp.mapreduce.Client", "galaxy.yarnapp.machine.Client"};   // Three types of jobs
+        String[] clientPath = {"galaxy.yarnapp.hello.Client", "galaxy.yarnapp.mapreduce.Client", "galaxy.yarnapp.machine_learning.Client"};   // Three types of jobs
         String[] fileDir = {"/", "/user/galaxy/mrinput/", "/user/galaxy/mlinput/"};
         String[] jobName = {"latency-critical", "word-count", "logistic-regression"};
 
@@ -110,7 +110,7 @@ public class GalaxyServer {
         for (int i = 0; i < maxJobNum; i++) {
             Job newJob = new Job();
             int jobType = random.nextInt(typeNum);
-            jobType = 1;
+            jobType = 2;
             newJob.jobName = jobName[jobType] + "_" + Integer.toString(i);
             newJob.clientPath = clientPath[jobType];
             newJob.fileDir = fileDir[jobType];
@@ -119,7 +119,7 @@ public class GalaxyServer {
             // Add resource requirements of users
             switch (jobType) {
                 case 0: newJob.vCores = 2; newJob.vMemory = 128; break;
-                case 1: newJob.vCores = 3; newJob.vMemory = 192; break;
+                case 1: newJob.vCores = 3; newJob.vMemory = 320; break;
                 case 2: newJob.vCores = 11; newJob.vMemory = 1344; break;
             }
             jobList.addJob(newJob);

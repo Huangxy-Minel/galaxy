@@ -1,7 +1,7 @@
 // Function: Create and Monitor ApplicationMaster
 // Author: MinelHuang
 // Date: 2021/04/22
-package galaxy.yarnapp.mapreduce;
+package galaxy.yarnapp.machine_learning;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
