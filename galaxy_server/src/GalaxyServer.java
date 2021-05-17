@@ -10,6 +10,7 @@ import galaxy.executor.Executor;
 import galaxy.store.job.*;
 import galaxy.store.container.*;
 import galaxy.scheduler.allocator.Allocator;
+import galaxy.scheduler.scheduler_model.SchedulerModel;
 
 import java.lang.ProcessBuilder;
 import java.lang.Process;
@@ -25,7 +26,7 @@ public class GalaxyServer {
 
     public static void main(String[] args) throws Exception {
         // ----------------Init----------------
-        int maxJobNum = 1;
+        int maxJobNum = 10;
         JobList jobList = new JobList();
         JobSet runningJobs = new JobSet();
         ContainerPool containerPool = new ContainerPool();
@@ -37,7 +38,7 @@ public class GalaxyServer {
         Integer round = 0;
 
         // ----------------Generate random jobs----------------
-        randomJob(maxJobNum, jobList);
+        randomJob(maxJobNum, jobList, round);
 
         // ----------------Server starts----------------
         while (!jobList.list.isEmpty()){
@@ -70,6 +71,7 @@ public class GalaxyServer {
             }
 
             // ----------------GalaxyScheduler-RM----------------
+            SchedulerModel.DefaultScheduler(jobList, runningJobs, round, containerPool);
             JobSet nextRoundJobs = Allocator.DefaultAllocator(jobList, containerPool);
 
             // ----------------Excuter----------------
@@ -83,6 +85,7 @@ public class GalaxyServer {
             System.out.println("job list size: " + Integer.toString(jobList.list.size()));
 
             round++;
+            // randomJob(1, jobList, round);
             Thread.currentThread().sleep(2000);
         }
         double averageRuntime = arrAverage(jobRuntimeList);
@@ -98,7 +101,7 @@ public class GalaxyServer {
         Output Para:
             jobList
     */
-    public static void randomJob (int maxJobNum, JobList jobList) throws Exception {
+    public static void randomJob (int maxJobNum, JobList jobList, Integer round) throws Exception {
         // ----------------Init----------------
         Random random = new Random();
         int typeNum = 3;
@@ -109,24 +112,40 @@ public class GalaxyServer {
         // ----------------Generate----------------
         for (int i = 0; i < maxJobNum; i++) {
             Job newJob = new Job();
-            int jobType = random.nextInt(typeNum);
-            jobType = 2;
+            int jobType = random.nextInt(typeNum - 1);
             newJob.jobName = jobName[jobType] + "_" + Integer.toString(i);
             newJob.clientPath = clientPath[jobType];
             newJob.fileDir = fileDir[jobType];
             newJob.priority = jobType;
             newJob.order = i;
+            newJob.enterRound = round;
             // Add resource requirements of users
             switch (jobType) {
-                case 0: newJob.vCores = 2; newJob.vMemory = 128; break;
-                case 1: newJob.vCores = 3; newJob.vMemory = 320; break;
-                case 2: newJob.vCores = 11; newJob.vMemory = 1344; break;
+                case 0: newJob.vCores = 2; newJob.vMemory = 128; newJob.jobType = "LC"; break;
+                case 1: newJob.vCores = 3; newJob.vMemory = 320; newJob.jobType = "MR"; break;
+                case 2: newJob.vCores = 11; newJob.vMemory = 1344; newJob.jobType = "ML"; break;
             }
             jobList.addJob(newJob);
         }
     }
 
     public static void execute (JobSet nextRoundJobs, ArrayList<Executor> executorList, JobSet runningJobs) throws Exception {
+        // Step 1: kill all jobs whose status have changed
+        Iterator<Job> it_runningJobs = runningJobs.set.iterator();
+        while (it_runningJobs.hasNext()) {
+            Job job = it_runningJobs.next();
+            if (job.changeFlag) {
+                job.changeFlag = false;
+                job.status = "waiting";
+                ProcessBuilder processBuilder = new ProcessBuilder();
+                String cmd = "yarn app -kill " + job.jobId;
+                processBuilder.command(cmd.split("\\s+"));
+                Process process = processBuilder.start();
+                Thread.currentThread().sleep(100);
+                it_runningJobs.remove();
+                System.out.println("Kill job: " + job.jobId);
+            }
+        }
         for (Job job : nextRoundJobs.set) {
             job.status = "working";
             runningJobs.addJob(job);

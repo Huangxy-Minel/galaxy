@@ -23,10 +23,11 @@ public class Job {
     public Integer priority = 0;
 
     public Integer order = 0;
-    public Integer requireCompleteTime = 1;
-    public Integer waitingTime = 0;
+    public Integer requireCompleteRound = 15;            //unit: round
+    public Integer enterRound = 0;
     public String completeTime = "";
     public String status = "waiting";
+    public boolean changeFlag = false;
     public ArrayList<Container> allocateContainer = new ArrayList<Container>();
     public int vCores = 0;      // user requirement
     public int vMemory = 0;

@@ -1,7 +1,7 @@
 # function: compile .java and create jar
 
 # add path of java file and output path 
-TARGETPATH=/home/galaxy/galaxy/executor/src
+TARGETPATH=/home/galaxy/galaxy/scheduler/scheduler_model/src
 DESPATH=/home/galaxy/
 
 # add lib path
@@ -27,7 +27,7 @@ javac -encoding utf-8 -cp $APACHECOMMON\
 :$YARNCLI\
 :$YARNCOMMON\
 :$GALAXYPATH\
- $TARGETPATH/Executor.java -d $DESPATH
+ $TARGETPATH/SchedulerModel.java -d $DESPATH
 
 # create jar
 # jar cf wc2.jar WordCount*.class

@@ -25,17 +25,23 @@ public class Executor {
         processBuilder.command(cmd.split("\\s+"));
         process = processBuilder.start();
         reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        Thread.currentThread().sleep(100);
+        // Thread.currentThread().sleep(100);
+        String line;
+        String[] words;
+        while((line = reader.readLine()) != null) {
+            if (line.indexOf("Submitting application") != -1) {
+                words = line.split(" ");
+                job.jobId = words[2];
+                break;
+            }
+        }
+        System.out.println("Start job: " + job.jobId);
     }
 
     public void readExecutor () throws Exception {
         String line;
         String[] words;
         while ((line = reader.readLine()) != null) {
-            if (line.indexOf("Submitting application") != -1) {     // catch app ID
-                words = line.split(" ");
-                job.jobId = words[2];
-            }
             if (line.indexOf("Client runtime") != -1) {
                 words = line.split(" ");
                 job.completeTime = words[2];
