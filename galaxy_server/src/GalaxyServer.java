@@ -26,7 +26,7 @@ public class GalaxyServer {
 
     public static void main(String[] args) throws Exception {
         // ----------------Init----------------
-        int maxJobNum = 10;
+        int maxJobNum = 15;
         JobList jobList = new JobList();
         JobSet runningJobs = new JobSet();
         ContainerPool containerPool = new ContainerPool();
@@ -34,16 +34,19 @@ public class GalaxyServer {
 
         // ----------------Debug----------------
         ArrayList<Integer> jobRuntimeList = new ArrayList<Integer>();
+        int overtimeLCNum = 0;
+        int killJobNum = 0;
 
         Integer round = 0;
 
         // ----------------Generate random jobs----------------
-        randomJob(maxJobNum, jobList, round);
+        randomJob(maxJobNum, jobList, round, 0);
+        int jobIdx = maxJobNum;
 
         // ----------------Server starts----------------
         while (!jobList.list.isEmpty()){
 
-            System.out.println("----------------Current Round: " + round.toString() + "----------------");
+            System.out.println("------------------------Current Round: " + round.toString() + "------------------------");
             
             // ----------------Check process status----------------
             Iterator<Executor> it_executorList = executorList.iterator();
@@ -66,6 +69,9 @@ public class GalaxyServer {
                     jobRuntimeList.add(Integer.parseInt(job.completeTime));
                     containerPool.delContainerfromJob(job);
                     jobList.delJob(job);
+                    if (job.jobType == "LC" && round - job.enterRound > job.requireCompleteRound) {
+                        overtimeLCNum++;
+                    }
                     it_runningJobs.remove();
                 }
             }
@@ -75,17 +81,30 @@ public class GalaxyServer {
             JobSet nextRoundJobs = Allocator.DefaultAllocator(jobList, containerPool);
 
             // ----------------Excuter----------------
-            execute(nextRoundJobs, executorList, runningJobs);
+            killJobNum += execute(nextRoundJobs, executorList, runningJobs);
 
             // ----------------Debug----------------
             System.out.println("freeMemory: " + Integer.toString(containerPool.freeMemory));
             System.out.println("freeVCores: " + Integer.toString(containerPool.freeVCores));
             System.out.println("running jobs num: " + Integer.toString(runningJobs.set.size()));
+            // System.out.println("----------------running jobs list:----------------");
+            // for (Job job : runningJobs.set) {
+            //     System.out.print(job.jobName + "  ");
+            // }
+            // System.out.print("\n");
             System.out.println("Executor num: " + Integer.toString(executorList.size()));
-            System.out.println("job list size: " + Integer.toString(jobList.list.size()));
+            System.out.println("Job list size: " + Integer.toString(jobList.list.size()));
+            System.out.println("Overtime LC jobs num: " + Integer.toString(overtimeLCNum));
+            System.out.println("Killed jobs num: " + Integer.toString(killJobNum));
+            // System.out.println("----------------jobs list:----------------");
+            // for (Job job : jobList.list) {
+            //     System.out.print(job.jobName + "  ");
+            // }
+            // System.out.print("\n");
 
             round++;
-            // randomJob(1, jobList, round);
+            randomJob(2, jobList, round, jobIdx);
+            jobIdx += 2;
             Thread.currentThread().sleep(2000);
         }
         double averageRuntime = arrAverage(jobRuntimeList);
@@ -101,7 +120,7 @@ public class GalaxyServer {
         Output Para:
             jobList
     */
-    public static void randomJob (int maxJobNum, JobList jobList, Integer round) throws Exception {
+    public static void randomJob (int maxJobNum, JobList jobList, Integer round, int jobIdx) throws Exception {
         // ----------------Init----------------
         Random random = new Random();
         int typeNum = 3;
@@ -113,7 +132,8 @@ public class GalaxyServer {
         for (int i = 0; i < maxJobNum; i++) {
             Job newJob = new Job();
             int jobType = random.nextInt(typeNum - 1);
-            newJob.jobName = jobName[jobType] + "_" + Integer.toString(i);
+            // jobType = 1;
+            newJob.jobName = jobName[jobType] + "_" + Integer.toString(jobIdx + i);
             newJob.clientPath = clientPath[jobType];
             newJob.fileDir = fileDir[jobType];
             newJob.priority = jobType;
@@ -129,7 +149,8 @@ public class GalaxyServer {
         }
     }
 
-    public static void execute (JobSet nextRoundJobs, ArrayList<Executor> executorList, JobSet runningJobs) throws Exception {
+    public static int execute (JobSet nextRoundJobs, ArrayList<Executor> executorList, JobSet runningJobs) throws Exception {
+        int killJobNum = 0;
         // Step 1: kill all jobs whose status have changed
         Iterator<Job> it_runningJobs = runningJobs.set.iterator();
         while (it_runningJobs.hasNext()) {
@@ -144,6 +165,7 @@ public class GalaxyServer {
                 Thread.currentThread().sleep(100);
                 it_runningJobs.remove();
                 System.out.println("Kill job: " + job.jobId);
+                killJobNum++;
             }
         }
         for (Job job : nextRoundJobs.set) {
@@ -157,6 +179,7 @@ public class GalaxyServer {
             newExecutor.executor();
             executorList.add(newExecutor);
         }
+        return killJobNum;
     }
 
     public static double arrAverage (ArrayList<Integer> arr) {

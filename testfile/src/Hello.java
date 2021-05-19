@@ -13,7 +13,7 @@ public class Hello{
     public static void main(String[] args) throws Exception {
         long startTime = System.currentTimeMillis();
         System.out.println("Hello World!");
-        Thread.currentThread().sleep(639);
+        Thread.currentThread().sleep(5000);
         long endTime = System.currentTimeMillis();
         System.out.println("Container runtime: " + (endTime - startTime) + "ms");
 
